@@ -9,9 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "anthropic": "^0.0.0",
+    "clsx": "^2.1.1",
+    "googleapis": "^169.0.0",
+    "lucide-react": "^0.562.0",
     "next": "16.0.10",
+    "openai": "^6.14.0",
     "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "react-dom": "19.2.1",
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

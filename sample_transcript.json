@@ -1,0 +1,104 @@
+{
+    "jobName": "test_job",
+    "accountId": "12345",
+    "results": {
+        "transcripts": [
+            {
+                "transcript": "Hello doctor. I have a headache."
+            }
+        ],
+        "items": [
+            {
+                "start_time": "0.0",
+                "end_time": "0.5",
+                "alternatives": [
+                    {
+                        "confidence": "1.0",
+                        "content": "Hello"
+                    }
+                ],
+                "type": "pronunciation",
+                "speaker_label": "spk_0"
+            },
+            {
+                "start_time": "0.5",
+                "end_time": "1.0",
+                "alternatives": [
+                    {
+                        "confidence": "1.0",
+                        "content": "doctor"
+                    }
+                ],
+                "type": "pronunciation",
+                "speaker_label": "spk_0"
+            },
+            {
+                "alternatives": [
+                    {
+                        "confidence": "0.0",
+                        "content": "."
+                    }
+                ],
+                "type": "punctuation"
+            },
+            {
+                "start_time": "1.5",
+                "end_time": "2.0",
+                "alternatives": [
+                    {
+                        "confidence": "1.0",
+                        "content": "I"
+                    }
+                ],
+                "type": "pronunciation",
+                "speaker_label": "spk_1"
+            },
+            {
+                "start_time": "2.0",
+                "end_time": "2.5",
+                "alternatives": [
+                    {
+                        "confidence": "1.0",
+                        "content": "have"
+                    }
+                ],
+                "type": "pronunciation",
+                "speaker_label": "spk_1"
+            },
+            {
+                "start_time": "2.5",
+                "end_time": "3.0",
+                "alternatives": [
+                    {
+                        "confidence": "1.0",
+                        "content": "a"
+                    }
+                ],
+                "type": "pronunciation",
+                "speaker_label": "spk_1"
+            },
+            {
+                "start_time": "3.0",
+                "end_time": "3.5",
+                "alternatives": [
+                    {
+                        "confidence": "1.0",
+                        "content": "headache"
+                    }
+                ],
+                "type": "pronunciation",
+                "speaker_label": "spk_1"
+            },
+            {
+                "alternatives": [
+                    {
+                        "confidence": "0.0",
+                        "content": "."
+                    }
+                ],
+                "type": "punctuation"
+            }
+        ]
+    },
+    "status": "COMPLETED"
+}
