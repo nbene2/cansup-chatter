@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { UserButton } from '@clerk/nextjs';
 import { FileUpload } from '@/components/file-upload';
 import { ProgressBar } from '@/components/progress-bar';
 import { ReportDisplay } from '@/components/report-display';
@@ -79,7 +80,12 @@ export default function Home() {
   const showProgress = status !== null && !report;
 
   return (
-    <main className="min-h-screen px-4 py-8 md:py-16">
+    <main className="min-h-screen px-4 py-8 md:py-16 relative">
+      {/* User menu */}
+      <div className="absolute top-4 right-4">
+        <UserButton afterSignOutUrl="/sign-in" />
+      </div>
+
       <div className="max-w-lg mx-auto">
 
         {/* Header */}
