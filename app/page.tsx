@@ -3,18 +3,36 @@
 import { useState } from 'react';
 import { UserButton } from '@clerk/nextjs';
 import { FileUpload } from '@/components/file-upload';
+import { AudioUpload } from '@/components/audio-upload';
 import { ProgressBar } from '@/components/progress-bar';
 import { ReportDisplay } from '@/components/report-display';
-import { CheckCircle2, ArrowRight, FileSpreadsheet, FileText, Copy, Check } from 'lucide-react';
+import { CheckCircle2, ArrowRight, FileSpreadsheet, FileText, Copy, Check, FileJson, Mic, ChevronDown } from 'lucide-react';
+import { convertToM4A, needsConversion } from '@/lib/audio-converter';
+
+type UploadMode = 'transcript' | 'audio';
+
+type OpenAIModel = 'gpt-4-turbo' | 'gpt-4o' | 'gpt-4o-mini' | 'o1' | 'o1-mini';
+
+const MODEL_OPTIONS: { value: OpenAIModel; label: string; description: string }[] = [
+  { value: 'gpt-4o', label: 'GPT-4o', description: 'Latest & fastest' },
+  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', description: 'Previous default' },
+  { value: 'gpt-4o-mini', label: 'GPT-4o Mini', description: 'Fast & cheap' },
+  { value: 'o1', label: 'o1', description: 'Best reasoning' },
+  { value: 'o1-mini', label: 'o1 Mini', description: 'Fast reasoning' },
+];
 
 export default function Home() {
+  const [uploadMode, setUploadMode] = useState<UploadMode>('transcript');
+  const [selectedModel, setSelectedModel] = useState<OpenAIModel>('gpt-4o');
   const [file, setFile] = useState<File | null>(null);
-  const [status, setStatus] = useState<'uploading' | 'processing' | 'generating' | 'complete' | null>(null);
+  const [status, setStatus] = useState<'uploading' | 'processing' | 'generating' | 'complete' | 'transcribing' | 'converting' | null>(null);
+  const [conversionProgress, setConversionProgress] = useState(0);
   const [report, setReport] = useState<string | null>(null);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   const [docUrl, setDocUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [pendingTranscription, setPendingTranscription] = useState<string | null>(null);
 
   const handleAnalyze = async () => {
     if (!file) return;
@@ -29,6 +47,7 @@ export default function Home() {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('model', selectedModel);
 
     try {
       const response = await fetch('/api/analyze', {
@@ -58,6 +77,69 @@ export default function Home() {
     }
   };
 
+  const handleAudioUpload = async () => {
+    if (!file) return;
+
+    setError(null);
+    setSheetUrl(null);
+    setDocUrl(null);
+    setCopied(false);
+    setPendingTranscription(null);
+    setConversionProgress(0);
+
+    let fileToUpload = file;
+
+    try {
+      // Check if file needs conversion to m4a
+      if (needsConversion(file)) {
+        setStatus('converting');
+
+        fileToUpload = await convertToM4A(file, (progress) => {
+          setConversionProgress(progress.progress);
+        });
+      }
+
+      setStatus('uploading');
+
+      const formData = new FormData();
+      formData.append('file', fileToUpload);
+
+      const response = await fetch('/api/upload-audio', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Upload Failed');
+      }
+
+      // File uploaded successfully, now waiting for transcription
+      setStatus('transcribing');
+      setPendingTranscription(data.s3Key);
+
+    } catch (err: any) {
+      setError(err.message);
+      setStatus(null);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (uploadMode === 'transcript') {
+      handleAnalyze();
+    } else {
+      handleAudioUpload();
+    }
+  };
+
+  const handleModeChange = (mode: UploadMode) => {
+    if (status !== null) return; // Don't change mode while processing
+    setUploadMode(mode);
+    setFile(null);
+    setError(null);
+  };
+
   const handleReset = () => {
     setFile(null);
     setReport(null);
@@ -66,6 +148,8 @@ export default function Home() {
     setError(null);
     setCopied(false);
     setStatus(null);
+    setPendingTranscription(null);
+    setConversionProgress(0);
   };
 
   const handleCopyUrls = () => {
@@ -106,24 +190,86 @@ export default function Home() {
         {/* Upload Section */}
         {showInput && (
           <div className="space-y-6">
-            <FileUpload
-              selectedFile={file}
-              onFileSelect={setFile}
-              onClear={() => setFile(null)}
-            />
+            {/* Mode Toggle */}
+            <div className="flex bg-gray-100 rounded-xl p-1">
+              <button
+                onClick={() => handleModeChange('transcript')}
+                className={`
+                  flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all
+                  ${uploadMode === 'transcript'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                  }
+                `}
+              >
+                <FileJson className="w-4 h-4" />
+                Transcript JSON
+              </button>
+              <button
+                onClick={() => handleModeChange('audio')}
+                className={`
+                  flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all
+                  ${uploadMode === 'audio'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                  }
+                `}
+              >
+                <Mic className="w-4 h-4" />
+                Audio/Video
+              </button>
+            </div>
+
+            {/* Model Selector */}
+            <div className="relative">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                AI Model
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value as OpenAIModel)}
+                  className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer"
+                >
+                  {MODEL_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label} - {option.description}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Conditional Upload Component */}
+            {uploadMode === 'transcript' ? (
+              <FileUpload
+                selectedFile={file}
+                onFileSelect={setFile}
+                onClear={() => setFile(null)}
+              />
+            ) : (
+              <AudioUpload
+                selectedFile={file}
+                onFileSelect={setFile}
+                onClear={() => setFile(null)}
+              />
+            )}
 
             <button
-              onClick={handleAnalyze}
+              onClick={handleSubmit}
               disabled={!file}
               className={`
                 w-full h-14 rounded-xl text-lg font-semibold transition-all flex items-center justify-center gap-2
                 ${!file
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-purple-600 text-white hover:bg-purple-700 active:scale-[0.98] shadow-lg shadow-purple-600/20'
+                  : uploadMode === 'transcript'
+                    ? 'bg-purple-600 text-white hover:bg-purple-700 active:scale-[0.98] shadow-lg shadow-purple-600/20'
+                    : 'bg-orange-600 text-white hover:bg-orange-700 active:scale-[0.98] shadow-lg shadow-orange-600/20'
                 }
               `}
             >
-              Generate Reports
+              {uploadMode === 'transcript' ? 'Generate Reports' : 'Upload & Transcribe'}
               {file && <ArrowRight className="w-5 h-5" />}
             </button>
 
@@ -137,7 +283,7 @@ export default function Home() {
 
         {/* Progress */}
         {showProgress && (
-          <ProgressBar status={status} />
+          <ProgressBar status={status} isAudioMode={uploadMode === 'audio'} conversionProgress={conversionProgress} />
         )}
 
         {/* Results */}

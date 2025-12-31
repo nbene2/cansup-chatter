@@ -1,0 +1,276 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cansup Chatter - Audio/Video Transcription Pipeline
+
+Parameters:
+  WebhookUrl:
+    Type: String
+    Description: Your Vercel app webhook URL (e.g., https://your-app.vercel.app/api/transcription-webhook)
+
+  BucketName:
+    Type: String
+    Default: cansup-audio-uploads
+    Description: S3 bucket name for audio uploads
+
+Resources:
+  # S3 Bucket for audio uploads and transcription output
+  AudioBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [PUT, POST, GET]
+            AllowedOrigins: ['*']
+            MaxAge: 3600
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: uploads/
+            Function: !GetAtt StartTranscriptionFunction.Arn
+
+  # IAM Role for Lambda functions
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: cansup-lambda-execution-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: TranscribeAndS3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub 'arn:aws:s3:::${BucketName}'
+                  - !Sub 'arn:aws:s3:::${BucketName}/*'
+              - Effect: Allow
+                Action:
+                  - transcribe:StartTranscriptionJob
+                  - transcribe:GetTranscriptionJob
+                Resource: '*'
+
+  # Lambda: Start Transcription when audio uploaded
+  StartTranscriptionFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cansup-start-transcription
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      Environment:
+        Variables:
+          OUTPUT_BUCKET: !Ref BucketName
+      Code:
+        ZipFile: |
+          import boto3
+          import os
+          import urllib.parse
+
+          def handler(event, context):
+              transcribe = boto3.client('transcribe')
+
+              # Get the uploaded file info
+              record = event['Records'][0]
+              bucket = record['s3']['bucket']['name']
+              key = urllib.parse.unquote_plus(record['s3']['object']['key'])
+
+              # Skip if not in uploads folder
+              if not key.startswith('uploads/'):
+                  return {'statusCode': 200, 'body': 'Skipped - not in uploads folder'}
+
+              # Determine media format from extension
+              extension = key.split('.')[-1].lower()
+              format_map = {
+                  'm4a': 'mp4',
+                  'mp4': 'mp4',
+                  'mp3': 'mp3',
+                  'wav': 'wav',
+                  'flac': 'flac',
+                  'ogg': 'ogg',
+                  'webm': 'webm'
+              }
+              media_format = format_map.get(extension, 'mp4')
+
+              # Create unique job name
+              filename = key.split('/')[-1]
+              job_name = filename.replace('.', '-').replace(' ', '-')[:200]
+
+              # Start transcription job
+              try:
+                  transcribe.start_transcription_job(
+                      TranscriptionJobName=job_name,
+                      Media={'MediaFileUri': f's3://{bucket}/{key}'},
+                      MediaFormat=media_format,
+                      LanguageCode='en-US',
+                      OutputBucketName=os.environ['OUTPUT_BUCKET'],
+                      OutputKey=f'transcripts/{job_name}.json',
+                      Settings={
+                          'ShowSpeakerLabels': True,
+                          'MaxSpeakerLabels': 5
+                      }
+                  )
+                  print(f'Started transcription job: {job_name}')
+                  return {'statusCode': 200, 'body': f'Started job: {job_name}'}
+              except Exception as e:
+                  print(f'Error starting transcription: {str(e)}')
+                  raise e
+
+  # Permission for S3 to invoke Lambda
+  S3InvokeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref StartTranscriptionFunction
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub 'arn:aws:s3:::${BucketName}'
+
+  # Lambda: Call webhook when transcription completes
+  WebhookCallbackFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cansup-webhook-callback
+      Runtime: python3.11
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 60
+      Environment:
+        Variables:
+          WEBHOOK_URL: !Ref WebhookUrl
+          S3_BUCKET: !Ref BucketName
+      Code:
+        ZipFile: |
+          import json
+          import os
+          import urllib.request
+          import boto3
+
+          def handler(event, context):
+              webhook_url = os.environ['WEBHOOK_URL']
+              bucket = os.environ['S3_BUCKET']
+
+              # Get job details from EventBridge event
+              detail = event.get('detail', {})
+              job_name = detail.get('TranscriptionJobName')
+              job_status = detail.get('TranscriptionJobStatus')
+
+              if job_status != 'COMPLETED':
+                  print(f'Job {job_name} status: {job_status} - skipping')
+                  return {'statusCode': 200, 'body': 'Job not completed'}
+
+              # Prepare webhook payload
+              payload = json.dumps({
+                  'transcriptionOutputKey': f'transcripts/{job_name}.json',
+                  'originalFileName': job_name,
+                  'bucket': bucket
+              }).encode('utf-8')
+
+              # Call the webhook
+              try:
+                  req = urllib.request.Request(
+                      webhook_url,
+                      data=payload,
+                      headers={'Content-Type': 'application/json'},
+                      method='POST'
+                  )
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      result = response.read().decode('utf-8')
+                      print(f'Webhook response: {result}')
+                      return {'statusCode': 200, 'body': result}
+              except Exception as e:
+                  print(f'Webhook error: {str(e)}')
+                  raise e
+
+  # EventBridge Rule: Trigger on Transcribe job completion
+  TranscribeCompleteRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: cansup-transcribe-complete
+      Description: Trigger webhook when AWS Transcribe job completes
+      EventPattern:
+        source:
+          - aws.transcribe
+        detail-type:
+          - Transcribe Job State Change
+        detail:
+          TranscriptionJobStatus:
+            - COMPLETED
+            - FAILED
+      State: ENABLED
+      Targets:
+        - Id: webhook-callback
+          Arn: !GetAtt WebhookCallbackFunction.Arn
+
+  # Permission for EventBridge to invoke Lambda
+  EventBridgeInvokeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WebhookCallbackFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt TranscribeCompleteRule.Arn
+
+  # IAM User for Vercel app to upload files
+  VercelUploadUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cansup-vercel-upload
+      Policies:
+        - PolicyName: S3UploadPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub 'arn:aws:s3:::${BucketName}/*'
+
+  # Access key for the Vercel user
+  VercelUploadUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref VercelUploadUser
+
+Outputs:
+  BucketName:
+    Description: S3 Bucket name
+    Value: !Ref AudioBucket
+
+  AccessKeyId:
+    Description: AWS Access Key ID for Vercel
+    Value: !Ref VercelUploadUserAccessKey
+
+  SecretAccessKey:
+    Description: AWS Secret Access Key for Vercel (save this!)
+    Value: !GetAtt VercelUploadUserAccessKey.SecretAccessKey
+
+  Region:
+    Description: AWS Region
+    Value: !Ref AWS::Region
+
+  VercelEnvVars:
+    Description: Copy these to your Vercel environment variables
+    Value: !Sub |
+      AWS_ACCESS_KEY_ID=${VercelUploadUserAccessKey}
+      AWS_SECRET_ACCESS_KEY=${VercelUploadUserAccessKey.SecretAccessKey}
+      AWS_REGION=${AWS::Region}
+      AWS_S3_BUCKET=${BucketName}

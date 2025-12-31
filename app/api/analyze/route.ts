@@ -94,17 +94,29 @@ function parseWordChart(report: string): string[][] {
     return data;
 }
 
+// Map frontend model names to OpenAI API model names
+const MODEL_MAP: Record<string, string> = {
+    'gpt-4-turbo': 'gpt-4-turbo-preview',
+    'gpt-4o': 'gpt-4o',
+    'gpt-4o-mini': 'gpt-4o-mini',
+    'o1': 'o1',
+    'o1-mini': 'o1-mini',
+};
+
 export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
         const file = formData.get('file') as File;
         const apiKey = formData.get('apiKey') as string;
+        const modelParam = formData.get('model') as string || 'gpt-4o';
 
         if (!file) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
         const activeClient = apiKey ? new OpenAI({ apiKey }) : client;
+        const modelName = MODEL_MAP[modelParam] || 'gpt-4o';
+        const isO1Model = modelParam.startsWith('o1');
 
         const fileContent = await file.text();
         let jsonContent: TranscribeResult;
@@ -117,13 +129,17 @@ export async function POST(req: NextRequest) {
 
         const cleanTranscript = processTranscript(jsonContent);
 
-        // Call OpenAI
+        // Call OpenAI - o1 models don't support system messages, so we combine them
+        const messages = isO1Model
+            ? [{ role: 'user' as const, content: `${SYSTEM_PROMPT}\n\n---\n\nHere is the transcript to analyze:\n\n${cleanTranscript}` }]
+            : [
+                { role: 'system' as const, content: SYSTEM_PROMPT },
+                { role: 'user' as const, content: cleanTranscript }
+            ];
+
         const completion = await activeClient.chat.completions.create({
-            model: 'gpt-4-turbo-preview',
-            messages: [
-                { role: 'system', content: SYSTEM_PROMPT },
-                { role: 'user', content: cleanTranscript }
-            ],
+            model: modelName,
+            messages,
         });
 
         const report = completion.choices[0].message.content || "";
