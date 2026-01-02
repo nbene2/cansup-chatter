@@ -11,19 +11,20 @@ import { convertToM4A, needsConversion } from '@/lib/audio-converter';
 
 type UploadMode = 'transcript' | 'audio';
 
-type OpenAIModel = 'gpt-4-turbo' | 'gpt-4o' | 'gpt-4o-mini' | 'o1' | 'o1-mini';
+type OpenAIModel = 'gpt-5' | 'o1' | 'o1-mini' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4-turbo';
 
 const MODEL_OPTIONS: { value: OpenAIModel; label: string; description: string }[] = [
-  { value: 'gpt-4o', label: 'GPT-4o', description: 'Latest & fastest' },
-  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', description: 'Previous default' },
-  { value: 'gpt-4o-mini', label: 'GPT-4o Mini', description: 'Fast & cheap' },
-  { value: 'o1', label: 'o1', description: 'Best reasoning' },
+  { value: 'o1', label: 'o1', description: 'Best reasoning (default)' },
+  { value: 'gpt-5', label: 'GPT-5', description: 'Latest model' },
   { value: 'o1-mini', label: 'o1 Mini', description: 'Fast reasoning' },
+  { value: 'gpt-4o', label: 'GPT-4o', description: 'Fast & capable' },
+  { value: 'gpt-4o-mini', label: 'GPT-4o Mini', description: 'Fast & cheap' },
+  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', description: 'Legacy' },
 ];
 
 export default function Home() {
   const [uploadMode, setUploadMode] = useState<UploadMode>('transcript');
-  const [selectedModel, setSelectedModel] = useState<OpenAIModel>('gpt-4o');
+  const [selectedModel, setSelectedModel] = useState<OpenAIModel>('o1');
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<'uploading' | 'processing' | 'generating' | 'complete' | 'transcribing' | 'converting' | null>(null);
   const [conversionProgress, setConversionProgress] = useState(0);

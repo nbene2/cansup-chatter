@@ -96,11 +96,12 @@ function parseWordChart(report: string): string[][] {
 
 // Map frontend model names to OpenAI API model names
 const MODEL_MAP: Record<string, string> = {
-    'gpt-4-turbo': 'gpt-4-turbo-preview',
-    'gpt-4o': 'gpt-4o',
-    'gpt-4o-mini': 'gpt-4o-mini',
+    'gpt-5': 'gpt-5',
     'o1': 'o1',
     'o1-mini': 'o1-mini',
+    'gpt-4o': 'gpt-4o',
+    'gpt-4o-mini': 'gpt-4o-mini',
+    'gpt-4-turbo': 'gpt-4-turbo-preview',
 };
 
 export async function POST(req: NextRequest) {
@@ -108,14 +109,14 @@ export async function POST(req: NextRequest) {
         const formData = await req.formData();
         const file = formData.get('file') as File;
         const apiKey = formData.get('apiKey') as string;
-        const modelParam = formData.get('model') as string || 'gpt-4o';
+        const modelParam = formData.get('model') as string || 'o1';
 
         if (!file) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
         const activeClient = apiKey ? new OpenAI({ apiKey }) : client;
-        const modelName = MODEL_MAP[modelParam] || 'gpt-4o';
+        const modelName = MODEL_MAP[modelParam] || 'o1';
         const isO1Model = modelParam.startsWith('o1');
 
         const fileContent = await file.text();
