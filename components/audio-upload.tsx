@@ -85,33 +85,35 @@ export function AudioUpload({ onFileSelect, selectedFile, onClear }: AudioUpload
   if (selectedFile) {
     const FileIcon = getFileIcon(selectedFile.name);
     return (
-      <div className="space-y-3">
-        <div className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center border border-indigo-100/50 shrink-0">
+      <div className="space-y-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center">
+            <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center border border-indigo-100/50 shrink-0">
               <FileIcon className="w-5 h-5 text-indigo-600" />
             </div>
-            <div className="min-w-0">
-              <p className="font-semibold text-gray-900 text-sm truncate max-w-[180px] sm:max-w-xs">{selectedFile.name}</p>
-              <p className="text-xs text-gray-500 font-medium mt-0.5">
+            <div className="ml-4 min-w-0 flex-1">
+              <p className="font-semibold text-gray-900 text-sm truncate">{selectedFile.name}</p>
+              <p className="text-xs text-gray-500 font-medium mt-1">
                 {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
               </p>
             </div>
+            <button
+              onClick={handleClear}
+              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors border border-transparent hover:border-gray-200 shrink-0 ml-4"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <button
-            onClick={handleClear}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors border border-transparent hover:border-gray-200 shrink-0 ml-2"
-          >
-            <X className="w-4 h-4" />
-          </button>
         </div>
-        <div className="bg-[#F8F9FA] border border-gray-200 rounded-xl p-3.5 text-sm text-gray-700 flex items-start sm:items-center gap-2.5 shadow-sm">
-          <div className="mt-0.5 sm:mt-0 p-1 bg-white rounded-full border border-gray-200 shrink-0">
-             <Mic className="w-3.5 h-3.5 text-indigo-600" />
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
+          <div className="flex items-center gap-3">
+            <div className="p-1.5 bg-white rounded-full border border-gray-200 shrink-0">
+              <Mic className="w-3.5 h-3.5 text-indigo-600" />
+            </div>
+            <p className="font-medium">
+              File will be securely transmitted and transcribed using AWS architecture.
+            </p>
           </div>
-          <p className="font-medium">
-            File will be securely transmitted and transcribed using AWS architecture.
-          </p>
         </div>
       </div>
     );
@@ -121,7 +123,7 @@ export function AudioUpload({ onFileSelect, selectedFile, onClear }: AudioUpload
     <div className="space-y-3">
       <div
         className={`
-          relative rounded-xl border-2 border-dashed transition-all cursor-pointer group
+          relative rounded-2xl border-2 border-dashed transition-all cursor-pointer group
           ${dragActive
             ? "border-indigo-500 bg-indigo-50/50"
             : "border-gray-200 bg-[#FAFAFA] hover:border-indigo-300 hover:bg-white"
@@ -141,17 +143,17 @@ export function AudioUpload({ onFileSelect, selectedFile, onClear }: AudioUpload
           onChange={handleChange}
         />
 
-        <div className="flex flex-col items-center py-8 sm:py-12 px-4">
+        <div className="flex flex-col items-center py-10 sm:py-14 px-6">
           <div className={`
-            w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors border shadow-sm
+            w-14 h-14 rounded-2xl flex items-center justify-center mb-5 transition-colors border shadow-sm
             ${dragActive ? 'bg-indigo-100 border-indigo-200' : 'bg-white border-gray-200 group-hover:bg-indigo-50 group-hover:border-indigo-200'}
           `}>
             <Upload className={`w-6 h-6 ${dragActive ? 'text-indigo-600' : 'text-gray-500 group-hover:text-indigo-600'}`} />
           </div>
-          <p className="text-base font-semibold text-gray-900 mb-1">
+          <p className="text-base font-semibold text-gray-900 mb-1.5">
             Drop your clinical recording here
           </p>
-          <p className="text-sm text-gray-500 mb-3 font-medium">
+          <p className="text-sm text-gray-500 mb-4 font-medium">
             or click to browse local files
           </p>
           <p className="text-xs text-gray-400 max-w-xs text-center">
@@ -161,7 +163,7 @@ export function AudioUpload({ onFileSelect, selectedFile, onClear }: AudioUpload
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium flex items-center gap-2">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium flex items-center gap-3">
           {error}
         </div>
       )}

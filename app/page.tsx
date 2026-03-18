@@ -276,13 +276,13 @@ export default function Home() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap items-center gap-2.5 px-2 mb-6">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 px-2 mb-8">
                   {sheetUrl && (
                     <a
                       href={sheetUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all shadow-sm active:scale-[0.98]"
+                      className="flex items-center gap-2.5 px-5 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all shadow-sm active:scale-[0.98]"
                     >
                       <FileSpreadsheet className="w-4 h-4 text-[#16A34A] shrink-0" />
                       Word Chart
@@ -293,7 +293,7 @@ export default function Home() {
                       href={docUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-5 py-2.5 bg-[#6A35FF] text-white rounded-xl text-sm font-semibold hover:bg-[#582CD6] transition-all shadow-sm active:scale-[0.98] shadow-[#6A35FF]/20"
+                      className="flex items-center gap-2.5 px-6 py-3 bg-[#6A35FF] text-white rounded-xl text-sm font-semibold hover:bg-[#582CD6] transition-all shadow-sm active:scale-[0.98] shadow-[#6A35FF]/20"
                     >
                       <FileText className="w-4 h-4 shrink-0" />
                       Open Report
@@ -302,7 +302,7 @@ export default function Home() {
                   {(sheetUrl || docUrl) && (
                     <button
                       onClick={handleCopyUrls}
-                      className="flex items-center gap-1.5 px-3.5 py-2.5 text-gray-500 hover:text-gray-900 text-sm font-semibold transition-colors rounded-xl hover:bg-gray-50"
+                      className="flex items-center gap-2 px-4 py-3 text-gray-500 hover:text-gray-900 text-sm font-semibold transition-colors rounded-xl hover:bg-gray-50"
                     >
                       {copied ? <Check className="w-3.5 h-3.5 text-[#16A34A]" /> : <Copy className="w-3.5 h-3.5" />}
                       {copied ? "Copied!" : "Copy Links"}
@@ -312,7 +312,7 @@ export default function Home() {
 
                 {/* Document Container */}
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                  <div className="p-4 sm:p-8 prose prose-gray max-w-none">
+                  <div className="p-5 sm:p-10 prose prose-gray max-w-none">
                     <ReportDisplay text={report} />
                   </div>
                 </div>

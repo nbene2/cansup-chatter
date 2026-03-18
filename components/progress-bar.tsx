@@ -56,7 +56,7 @@ export function ProgressBar({ status, conversionProgress = 0 }: ProgressBarProps
     return (
         <div className="w-full">
             {/* Step indicators */}
-            <div className="flex items-start justify-between mb-8">
+            <div className="flex items-start justify-between mb-10">
                 {audioSteps.map((step, index) => {
                     const Icon = step.icon;
                     const isActive = index === currentIndex;
@@ -67,7 +67,7 @@ export function ProgressBar({ status, conversionProgress = 0 }: ProgressBarProps
                         <div key={step.id} className="flex flex-col items-center relative flex-1 min-w-0">
                             {/* Connector Line */}
                             {index < audioSteps.length - 1 && (
-                                <div className="absolute top-3 sm:top-3.5 left-1/2 w-full h-[2px] -z-10 px-3 sm:px-4">
+                                <div className="absolute top-3.5 sm:top-4 left-1/2 w-full h-[2px] -z-10 px-3 sm:px-4">
                                     <div className="w-full h-full bg-gray-100 rounded-full overflow-hidden">
                                         <div
                                             className={`h-full bg-[#6A35FF] transition-all duration-700 ease-out ${index < currentIndex ? 'w-full' : 'w-0'}`}
@@ -79,22 +79,22 @@ export function ProgressBar({ status, conversionProgress = 0 }: ProgressBarProps
                             {/* Circle */}
                             <div
                                 className={`
-                                    w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-all duration-500 shrink-0 relative z-0
+                                    w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-500 shrink-0 relative z-0
                                     ${isComplete ? 'bg-[#6A35FF] text-white shadow-sm' : ''}
                                     ${isActive ? 'border-2 border-[#6A35FF] bg-white text-[#6A35FF] shadow-md shadow-[#6A35FF]/20 ring-[3px] ring-[#6A35FF]/10' : ''}
                                     ${isPending ? 'border-[1.5px] border-gray-200 bg-white text-gray-300' : ''}
                                 `}
                             >
                                 {isComplete ? (
-                                    <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                    <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 ) : (
-                                    <Icon className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${isActive && status !== 'complete' ? 'animate-pulse' : ''}`} />
+                                    <Icon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isActive && status !== 'complete' ? 'animate-pulse' : ''}`} />
                                 )}
                             </div>
 
                             {/* Label - hidden on mobile to prevent overlap */}
                             <span className={`
-                                hidden sm:block text-[10px] font-semibold mt-2.5 uppercase tracking-wider transition-colors duration-300 text-center
+                                hidden sm:block text-[10px] font-semibold mt-3 uppercase tracking-wider transition-colors duration-300 text-center
                                 ${isActive || isComplete ? 'text-gray-900' : 'text-gray-400'}
                             `}>
                                 {step.label}
@@ -105,15 +105,15 @@ export function ProgressBar({ status, conversionProgress = 0 }: ProgressBarProps
             </div>
 
             {/* Status message area */}
-            <div className="bg-[#FAFAFA] border border-gray-200/60 rounded-xl p-5 flex flex-col items-center justify-center text-center">
+            <div className="bg-[#FAFAFA] border border-gray-200/60 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
                 {/* Show current step label on mobile since stepper labels are hidden */}
                 {currentStep && status !== 'complete' && (
-                    <span className="sm:hidden text-[10px] font-bold uppercase tracking-widest text-[#6A35FF] mb-2">
+                    <span className="sm:hidden text-[10px] font-bold uppercase tracking-widest text-[#6A35FF] mb-2.5">
                         {currentStep.label}
                     </span>
                 )}
 
-                <span className="text-sm font-semibold text-gray-900 mb-1">
+                <span className="text-sm font-semibold text-gray-900 mb-1.5">
                     {currentMessage}
                     {status === 'converting' && <span className="text-gray-500 font-mono ml-2">({Math.round(conversionProgress)}%)</span>}
                 </span>
@@ -125,7 +125,7 @@ export function ProgressBar({ status, conversionProgress = 0 }: ProgressBarProps
                 )}
 
                 {status !== 'complete' && (
-                    <div className="w-48 h-1 bg-gray-200 rounded-full mt-4 overflow-hidden">
+                    <div className="w-48 h-1 bg-gray-200 rounded-full mt-5 overflow-hidden">
                        <div className="h-full bg-[#6A35FF] rounded-full w-full animate-progress" />
                     </div>
                 )}
