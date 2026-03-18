@@ -1,60 +1,50 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Upload, Sparkles, FileText, Check, Mic, RefreshCw } from 'lucide-react';
+import { Upload, Sparkles, FileText, Check, Mic, RefreshCw, Loader2 } from 'lucide-react';
 
 interface ProgressBarProps {
     status: 'uploading' | 'processing' | 'generating' | 'complete' | 'transcribing' | 'converting' | null;
-    isAudioMode?: boolean;
     conversionProgress?: number;
 }
 
-const transcriptSteps = [
-    { id: 'uploading', label: 'Uploading', icon: Upload, message: 'Uploading your transcript...' },
-    { id: 'processing', label: 'Analyzing', icon: Sparkles, message: 'AI is reading the conversation...' },
-    { id: 'generating', label: 'Generating', icon: FileText, message: 'Writing your reports...' },
-    { id: 'complete', label: 'Done', icon: Check, message: 'All done!' },
-];
-
 const audioSteps = [
-    { id: 'converting', label: 'Converting', icon: RefreshCw, message: 'Converting to audio format...' },
-    { id: 'uploading', label: 'Uploading', icon: Upload, message: 'Uploading your audio file...' },
-    { id: 'transcribing', label: 'Transcribing', icon: Mic, message: 'AWS is transcribing your audio...' },
-    { id: 'processing', label: 'Analyzing', icon: Sparkles, message: 'AI is reading the conversation...' },
-    { id: 'generating', label: 'Generating', icon: FileText, message: 'Writing your reports...' },
-    { id: 'complete', label: 'Done', icon: Check, message: 'All done!' },
+    { id: 'converting', label: 'Preparing', icon: RefreshCw, message: 'Optimizing audio format...' },
+    { id: 'uploading', label: 'Uploading', icon: Upload, message: 'Uploading to secure vault...' },
+    { id: 'transcribing', label: 'Transcribing', icon: Mic, message: 'AI is transcribing speech...' },
+    { id: 'processing', label: 'Analyzing', icon: Sparkles, message: 'Extracting medical insights...' },
+    { id: 'generating', label: 'Drafting', icon: FileText, message: 'Writing clinical reports...' },
+    { id: 'complete', label: 'Ready', icon: Check, message: 'All done!' },
 ];
 
 const funMessages = [
     "Reading between the lines...",
-    "Connecting the dots...",
-    "Finding key insights...",
-    "Almost there...",
-    "Putting it all together...",
+    "Connecting clinical dots...",
+    "Finding key medical insights...",
+    "Polishing the final draft...",
+    "Structuring patient data...",
 ];
 
 const transcribingMessages = [
     "Converting speech to text...",
-    "Identifying speakers...",
-    "Processing audio...",
+    "Identifying distinct speakers...",
+    "Processing complex audio...",
     "This may take a few minutes...",
 ];
 
 const convertingMessages = [
     "Extracting audio from video...",
-    "Converting to M4A format...",
-    "Optimizing for transcription...",
+    "Converting to optimized M4A format...",
+    "Preparing file for processing...",
 ];
 
-export function ProgressBar({ status, isAudioMode = false, conversionProgress = 0 }: ProgressBarProps) {
+export function ProgressBar({ status, conversionProgress = 0 }: ProgressBarProps) {
     const [messageIndex, setMessageIndex] = useState(0);
     const [dots, setDots] = useState('');
 
-    const steps = isAudioMode ? audioSteps : transcriptSteps;
-    const currentIndex = steps.findIndex(s => s.id === status);
-    const currentStep = steps[currentIndex] || steps[0];
+    const currentIndex = audioSteps.findIndex(s => s.id === status);
+    const currentStep = audioSteps[currentIndex] || audioSteps[0];
 
-    // Rotate through fun messages during processing/generating/transcribing/converting
     useEffect(() => {
         if (status === 'processing' || status === 'generating' || status === 'transcribing' || status === 'converting') {
             const messages = status === 'transcribing' ? transcribingMessages
@@ -62,22 +52,21 @@ export function ProgressBar({ status, isAudioMode = false, conversionProgress = 
                 : funMessages;
             const interval = setInterval(() => {
                 setMessageIndex(i => (i + 1) % messages.length);
-            }, 3000);
+            }, 3500);
             return () => clearInterval(interval);
         }
     }, [status]);
 
-    // Animate dots
     useEffect(() => {
         const interval = setInterval(() => {
             setDots(d => d.length >= 3 ? '' : d + '.');
-        }, 400);
+        }, 500);
         return () => clearInterval(interval);
     }, []);
 
     const getMessage = () => {
         if (status === 'converting') {
-            return `${convertingMessages[messageIndex % convertingMessages.length]} (${conversionProgress}%)`;
+            return `${convertingMessages[messageIndex % convertingMessages.length]} (${Math.round(conversionProgress)}%)`;
         }
         if (status === 'transcribing') {
             return transcribingMessages[messageIndex % transcribingMessages.length];
@@ -88,103 +77,105 @@ export function ProgressBar({ status, isAudioMode = false, conversionProgress = 
         return currentStep.message;
     };
 
-    const accentColor = isAudioMode ? 'orange' : 'purple';
-
     return (
-        <div className="w-full">
-            {/* Steps */}
-            <div className="flex items-center justify-between mb-8">
-                {steps.map((step, index) => {
+        <div className="w-full bg-white/50 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white max-w-2xl mx-auto ring-1 ring-gray-900/5 shadow-xl shadow-orange-500/5">
+            {/* Steps Timeline Track */}
+            <div className="flex items-center justify-between mb-10 relative">
+                {audioSteps.map((step, index) => {
                     const Icon = step.icon;
                     const isActive = index === currentIndex;
                     const isComplete = index < currentIndex;
                     const isPending = index > currentIndex;
 
                     return (
-                        <div key={step.id} className="flex items-center">
-                            {/* Step circle */}
-                            <div className="flex flex-col items-center">
-                                <div
-                                    className={`
-                                        w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-500
-                                        ${isComplete ? (isAudioMode ? 'bg-orange-600 text-white scale-90' : 'bg-purple-600 text-white scale-90') : ''}
-                                        ${isActive ? (isAudioMode ? 'bg-orange-600 text-white scale-110 shadow-lg shadow-orange-600/30' : 'bg-purple-600 text-white scale-110 shadow-lg shadow-purple-600/30') : ''}
-                                        ${isPending ? 'bg-gray-100 text-gray-400' : ''}
-                                    `}
-                                >
-                                    {isComplete ? (
-                                        <Check className="w-4 h-4 sm:w-5 sm:h-5" />
-                                    ) : (
-                                        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${isActive ? 'animate-pulse' : ''}`} />
-                                    )}
-                                </div>
-                                <span className={`
-                                    text-xs font-medium mt-2 transition-colors duration-300 hidden sm:block
-                                    ${isActive ? (isAudioMode ? 'text-orange-600' : 'text-purple-600') : ''}
-                                    ${isComplete ? (isAudioMode ? 'text-orange-600' : 'text-purple-600') : ''}
-                                    ${isPending ? 'text-gray-400' : ''}
-                                `}>
-                                    {step.label}
-                                </span>
-                            </div>
-
-                            {/* Connector line */}
-                            {index < steps.length - 1 && (
-                                <div className="w-6 sm:w-12 md:w-16 h-0.5 mx-1 sm:mx-2 relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gray-200" />
+                        <div key={step.id} className="flex flex-col items-center relative z-10">
+                            {/* Connector Line behind circles */}
+                            {index < audioSteps.length - 1 && (
+                                <div className="absolute top-5 left-1/2 w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] md:w-[calc(100%+4rem)] h-1 -z-10 bg-gray-100 rounded-full overflow-hidden">
                                     <div
-                                        className={`
-                                            absolute inset-y-0 left-0 transition-all duration-700 ease-out
-                                            ${isAudioMode ? 'bg-orange-600' : 'bg-purple-600'}
-                                            ${index < currentIndex ? 'w-full' : 'w-0'}
-                                        `}
+                                        className={`absolute inset-y-0 left-0 bg-gradient-to-r from-orange-400 to-rose-500 transition-all duration-1000 ease-in-out ${index < currentIndex ? 'w-full' : 'w-0'}`}
                                     />
-                                    {index === currentIndex - 1 && (
-                                        <div className={`absolute inset-0 animate-pulse ${isAudioMode ? 'bg-gradient-to-r from-orange-600 via-orange-400 to-transparent' : 'bg-gradient-to-r from-purple-600 via-purple-400 to-transparent'}`} />
+                                    {isActive && (
+                                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 via-rose-500/80 to-transparent animate-[shimmer_2s_infinite] w-full" />
                                     )}
                                 </div>
                             )}
+
+                            {/* Step Circle */}
+                            <div
+                                className={`
+                                    w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-500 transform
+                                    ${isComplete ? 'bg-gradient-to-br from-orange-500 to-rose-500 text-white shadow-md shadow-orange-500/30' : ''}
+                                    ${isActive ? 'bg-white border-2 border-rose-500 text-rose-500 scale-125 shadow-xl shadow-rose-500/30' : ''}
+                                    ${isPending ? 'bg-gray-50 border border-gray-200 text-gray-400' : ''}
+                                `}
+                            >
+                                {isComplete ? (
+                                    <Check className="w-4 h-4 sm:w-5 sm:h-5" />
+                                ) : (
+                                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${isActive ? 'animate-pulse' : ''}`} />
+                                )}
+                            </div>
+                            
+                            {/* Step Label */}
+                            <span className={`
+                                text-[10px] sm:text-xs font-bold mt-4 transition-colors duration-300 uppercase tracking-wider
+                                ${isActive ? 'text-rose-600' : ''}
+                                ${isComplete ? 'text-rose-600' : ''}
+                                ${isPending ? 'text-gray-400' : ''}
+                                ${isActive ? 'opacity-100 translate-y-0' : 'opacity-70'}
+                            `}>
+                                {step.label}
+                            </span>
                         </div>
                     );
                 })}
             </div>
 
-            {/* Message card */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center">
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${isAudioMode ? 'bg-orange-50' : 'bg-purple-50'}`}>
-                    <currentStep.icon className={`w-7 h-7 ${isAudioMode ? 'text-orange-600' : 'text-purple-600'} ${status !== 'complete' ? 'animate-bounce' : ''}`} />
-                </div>
-
-                <p className="text-lg font-medium text-gray-900 mb-1">
-                    {getMessage()}{status !== 'complete' && dots}
-                </p>
-
-                <p className="text-sm text-gray-500">
-                    {status === 'complete'
-                        ? 'Your reports are ready below'
-                        : status === 'transcribing'
-                            ? 'Transcription can take a few minutes depending on file size'
-                            : status === 'converting'
-                                ? 'Converting video to audio format'
-                                : 'This usually takes about 30 seconds'
-                    }
-                </p>
-
-                {/* Progress bar */}
+            {/* Dynamic Status Card */}
+            <div className="bg-gradient-to-br from-[#ffffff] to-[#fffaf8] border border-orange-100/50 rounded-2xl p-6 text-center shadow-lg shadow-orange-500/5 relative overflow-hidden">
+                {/* Background ambient glow when active */}
                 {status !== 'complete' && (
-                    <div className="mt-6 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        {status === 'converting' ? (
-                            // Fixed progress bar for conversion
-                            <div
-                                className={`h-full rounded-full transition-all duration-300 ${isAudioMode ? 'bg-orange-600' : 'bg-purple-600'}`}
-                                style={{ width: `${conversionProgress}%` }}
-                            />
-                        ) : (
-                            // Animated progress bar for other states
-                            <div className={`h-full rounded-full animate-progress ${isAudioMode ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500' : 'bg-gradient-to-r from-purple-500 via-purple-600 to-purple-500'}`} />
-                        )}
-                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-rose-500/5 to-orange-500/5 animate-[pulse_4s_infinite]" />
                 )}
+                
+                <div className="relative z-10 flex flex-col items-center justify-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-50 mb-5 relative">
+                        {status !== 'complete' && (
+                            <div className="absolute inset-0 rounded-full border-4 border-orange-200 border-t-orange-500 animate-spin" />
+                        )}
+                        <currentStep.icon className={`w-7 h-7 text-orange-600 ${status !== 'complete' ? 'animate-pulse' : ''}`} />
+                    </div>
+
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 font-sans tracking-tight">
+                        {getMessage()}{status !== 'complete' && <span className="text-orange-500 font-mono inline-block w-8 text-left">{dots}</span>}
+                    </h3>
+
+                    <p className="text-sm font-medium text-gray-500 max-w-md mx-auto">
+                        {status === 'complete'
+                            ? 'Your clinical analysis is ready. View the insights below.'
+                            : status === 'transcribing'
+                                ? 'Transcription utilizes secure AWS infrastructure. Long recordings may take up to 5 minutes.'
+                                : status === 'converting'
+                                    ? 'Ensuring optimal audio bitrate for the transcription model.'
+                                    : 'Applying advanced clinical reasoning models. This usually takes 30-45 seconds.'
+                        }
+                    </p>
+
+                    {/* Progress Loader Bar */}
+                    {status !== 'complete' && (
+                        <div className="mt-8 w-full max-w-sm mx-auto h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                            {status === 'converting' ? (
+                                <div
+                                    className="h-full rounded-full bg-gradient-to-r from-orange-500 to-rose-500 transition-all duration-300"
+                                    style={{ width: `${conversionProgress}%` }}
+                                />
+                            ) : (
+                                <div className="h-full rounded-full w-full bg-gradient-to-r from-orange-400 via-rose-500 to-orange-400 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

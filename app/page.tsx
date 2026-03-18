@@ -2,14 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { UserButton } from '@clerk/nextjs';
-import { FileUpload } from '@/components/file-upload';
 import { AudioUpload } from '@/components/audio-upload';
 import { ProgressBar } from '@/components/progress-bar';
 import { ReportDisplay } from '@/components/report-display';
-import { CheckCircle2, ArrowRight, FileSpreadsheet, FileText, Copy, Check, FileJson, Mic, ChevronDown } from 'lucide-react';
+import { CheckCircle2, ArrowRight, FileSpreadsheet, FileText, Copy, Check, ChevronDown, RefreshCcw } from 'lucide-react';
 import { convertToM4A, needsConversion } from '@/lib/audio-converter';
-
-type UploadMode = 'transcript' | 'audio';
 
 type OpenAIModel = 'gpt-5' | 'o1' | 'o1-mini' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4-turbo';
 
@@ -23,7 +20,6 @@ const MODEL_OPTIONS: { value: OpenAIModel; label: string; description: string }[
 ];
 
 export default function Home() {
-  const [uploadMode, setUploadMode] = useState<UploadMode>('transcript');
   const [selectedModel, setSelectedModel] = useState<OpenAIModel>('o1');
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<'uploading' | 'processing' | 'generating' | 'complete' | 'transcribing' | 'converting' | null>(null);
@@ -171,20 +167,7 @@ export default function Home() {
     }
   };
 
-  const handleSubmit = () => {
-    if (uploadMode === 'transcript') {
-      handleAnalyze();
-    } else {
-      handleAudioUpload();
-    }
-  };
 
-  const handleModeChange = (mode: UploadMode) => {
-    if (status !== null) return; // Don't change mode while processing
-    setUploadMode(mode);
-    setFile(null);
-    setError(null);
-  };
 
   const handleReset = () => {
     setFile(null);
@@ -210,185 +193,162 @@ export default function Home() {
   const showProgress = status !== null && !report;
 
   return (
-    <main className="min-h-screen px-4 py-8 md:py-16 relative">
-      {/* User menu */}
-      <div className="absolute top-4 right-4">
-        <UserButton afterSignOutUrl="/sign-in" />
-      </div>
+    <main className="min-h-screen relative bg-gradient-to-br from-[#f8f9ff] via-[#ffffff] to-[#fff5f0] overflow-hidden">
+      {/* Decorative background gradients */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-br from-indigo-200/40 to-purple-200/40 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-tl from-orange-200/40 to-rose-200/40 blur-3xl pointer-events-none" />
 
-      <div className="max-w-lg mx-auto">
-
-        {/* Header */}
-        <div className="text-center mb-10">
-          <img
-            src="/images.jpg"
-            alt="Cansup"
-            className="w-16 h-auto mx-auto mb-4 rounded-lg"
-          />
-          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
-            Transcript Analyzer
-          </h1>
-          <p className="text-gray-500">
-            Upload a conversation transcript to generate reports
-          </p>
+      <div className="relative z-10 px-4 py-8 md:py-16">
+        {/* User menu */}
+        <div className="absolute top-4 right-4 z-50">
+          <UserButton afterSignOutUrl="/sign-in" />
         </div>
 
-        {/* Upload Section */}
-        {showInput && (
-          <div className="space-y-6">
-            {/* Mode Toggle */}
-            <div className="flex bg-gray-100 rounded-xl p-1">
-              <button
-                onClick={() => handleModeChange('transcript')}
-                className={`
-                  flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all
-                  ${uploadMode === 'transcript'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                  }
-                `}
-              >
-                <FileJson className="w-4 h-4" />
-                Transcript JSON
-              </button>
-              <button
-                onClick={() => handleModeChange('audio')}
-                className={`
-                  flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all
-                  ${uploadMode === 'audio'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                  }
-                `}
-              >
-                <Mic className="w-4 h-4" />
-                Audio/Video
-              </button>
-            </div>
-
-            {/* Model Selector */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                AI Model
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value as OpenAIModel)}
-                  className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer"
-                >
-                  {MODEL_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label} - {option.description}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Conditional Upload Component */}
-            {uploadMode === 'transcript' ? (
-              <FileUpload
-                selectedFile={file}
-                onFileSelect={setFile}
-                onClear={() => setFile(null)}
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-block p-1 rounded-2xl bg-gradient-to-b from-white/80 to-white/20 shadow-xl shadow-orange-500/10 mb-6 backdrop-blur-xl border border-white/50">
+              <img
+                src="/images.jpg"
+                alt="Cansup"
+                className="w-20 h-20 rounded-xl object-cover"
               />
-            ) : (
-              <AudioUpload
-                selectedFile={file}
-                onFileSelect={setFile}
-                onClear={() => setFile(null)}
-              />
-            )}
-
-            <button
-              onClick={handleSubmit}
-              disabled={!file}
-              className={`
-                w-full h-14 rounded-xl text-lg font-semibold transition-all flex items-center justify-center gap-2
-                ${!file
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : uploadMode === 'transcript'
-                    ? 'bg-purple-600 text-white hover:bg-purple-700 active:scale-[0.98] shadow-lg shadow-purple-600/20'
-                    : 'bg-orange-600 text-white hover:bg-orange-700 active:scale-[0.98] shadow-lg shadow-orange-600/20'
-                }
-              `}
-            >
-              {uploadMode === 'transcript' ? 'Generate Reports' : 'Upload & Transcribe'}
-              {file && <ArrowRight className="w-5 h-5" />}
-            </button>
-
-            {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center">
-                {error}
-              </div>
-            )}
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4 font-sans">
+              Clinical <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-rose-500">Audio Intelligence</span>
+            </h1>
+            <p className="text-gray-500 text-lg max-w-lg mx-auto">
+              Upload clinical recordings to instantly generate structured medical reports and word frequency insights.
+            </p>
           </div>
-        )}
 
-        {/* Progress */}
-        {showProgress && (
-          <ProgressBar status={status} isAudioMode={uploadMode === 'audio'} conversionProgress={conversionProgress} />
-        )}
+          <div className="bg-white/70 backdrop-blur-xl border border-white max-w-xl mx-auto rounded-3xl p-6 sm:p-8 shadow-2xl shadow-indigo-500/5 transition-all duration-500">
+            {/* Upload Section */}
+            {showInput && (
+              <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+                {/* Model Selector */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Analysis Engine
+                  </label>
+                  <div className="relative group">
+                    <select
+                      value={selectedModel}
+                      onChange={(e) => setSelectedModel(e.target.value as OpenAIModel)}
+                      className="w-full appearance-none bg-white/50 border border-gray-200 rounded-2xl px-5 py-4 pr-12 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer transition-all hover:bg-white"
+                    >
+                      {MODEL_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label} - {option.description}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none group-hover:text-orange-500 transition-colors" />
+                  </div>
+                </div>
 
-        {/* Results */}
-        {report && (
-          <div className="space-y-6">
-            {/* Success Banner */}
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-              <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="font-medium text-green-900">Reports Ready</p>
-                <p className="text-sm text-green-700">Your analysis is complete</p>
-              </div>
-            </div>
+                <AudioUpload
+                  selectedFile={file}
+                  onFileSelect={setFile}
+                  onClear={() => setFile(null)}
+                />
 
-            {/* Action Buttons */}
-            <div className="grid grid-cols-1 gap-3">
-              {sheetUrl && (
-                <a
-                  href={sheetUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 h-12 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
-                >
-                  <FileSpreadsheet className="w-5 h-5" />
-                  Open Word Chart
-                </a>
-              )}
-              {docUrl && (
-                <a
-                  href={docUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 h-12 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
-                >
-                  <FileText className="w-5 h-5" />
-                  Open Full Report
-                </a>
-              )}
-              {(sheetUrl || docUrl) && (
                 <button
-                  onClick={handleCopyUrls}
-                  className="flex items-center justify-center gap-2 h-12 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                  onClick={handleAudioUpload}
+                  disabled={!file}
+                  className={`
+                    w-full h-16 rounded-2xl text-lg font-bold transition-all duration-300 flex items-center justify-center gap-3
+                    ${!file
+                      ? 'bg-gray-100/50 text-gray-400 cursor-not-allowed border border-gray-200'
+                      : 'bg-gradient-to-r from-orange-500 to-rose-500 text-white hover:from-orange-600 hover:to-rose-600 active:scale-[0.98] shadow-xl shadow-orange-500/25 border border-orange-400/20 hover:shadow-2xl hover:shadow-orange-500/40'
+                    }
+                  `}
                 >
-                  {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
-                  {copied ? "Copied!" : "Copy Links"}
+                  Upload & Transcribe
+                  {file && <ArrowRight className="w-5 h-5" />}
                 </button>
-              )}
-            </div>
 
-            <ReportDisplay text={report} />
+                {error && (
+                  <div className="p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl text-red-600 text-center text-sm font-medium animate-in fade-in slide-in-from-top-2">
+                    {error}
+                  </div>
+                )}
+              </div>
+            )}
 
-            <button
-              onClick={handleReset}
-              className="w-full h-12 border border-gray-200 text-gray-600 rounded-xl font-medium hover:bg-gray-50 transition-colors"
-            >
-              Start Over
-            </button>
+            {/* Progress */}
+            {showProgress && (
+              <div className="animate-in fade-in zoom-in-95 duration-500">
+                <ProgressBar status={status} conversionProgress={conversionProgress} />
+              </div>
+            )}
+
+            {/* Results */}
+            {report && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                {/* Success Banner */}
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-5 flex items-center gap-4">
+                  <div className="bg-emerald-100 rounded-full p-2">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-emerald-900">Analysis Complete</p>
+                    <p className="text-sm text-emerald-700 font-medium">Your medical reports have been securely generated.</p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {sheetUrl && (
+                    <a
+                      href={sheetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-3 h-14 bg-emerald-600 text-white rounded-2xl font-semibold hover:bg-emerald-700 transition-all hover:shadow-lg hover:shadow-emerald-600/20 active:scale-95"
+                    >
+                      <FileSpreadsheet className="w-5 h-5" />
+                      Frequency Chart
+                    </a>
+                  )}
+                  {docUrl && (
+                    <a
+                      href={docUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-3 h-14 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-blue-600/20 active:scale-95"
+                    >
+                      <FileText className="w-5 h-5" />
+                      Full Report Doc
+                    </a>
+                  )}
+                  {(sheetUrl || docUrl) && (
+                    <button
+                      onClick={handleCopyUrls}
+                      className="sm:col-span-2 flex items-center justify-center gap-2 h-12 bg-white/50 border-2 border-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors active:scale-95"
+                    >
+                      {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
+                      {copied ? "Links Copied!" : "Copy Links"}
+                    </button>
+                  )}
+                </div>
+
+                <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white/80 backdrop-blur-md">
+                  <ReportDisplay text={report} />
+                </div>
+
+                <div className="pt-6 border-t border-gray-200">
+                  <button
+                    onClick={handleReset}
+                    className="group w-full h-16 bg-white border-2 border-indigo-100 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-sm shadow-indigo-500/5 hover:shadow-md hover:shadow-indigo-500/10"
+                  >
+                    <RefreshCcw className="w-5 h-5 group-hover:-rotate-180 transition-transform duration-500" />
+                    Process New Recording
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </main>
   );
