@@ -68,14 +68,19 @@ A simple summary of Section 5 from the INTERNAL report, in bullet form.
 `;
 
 function parseWordChart(report: string): string[][] {
-    const startMarker = "Section 2: Word"; // Loose match to catch "Word chart" or "Word Chart"
-    const endMarker = "Section 3";
+    const startMatch = report.match(/Section 2:\s*\*?Word/i);
+    if (!startMatch || typeof startMatch.index === 'undefined') return [];
 
-    const startIndex = report.indexOf(startMarker);
-    if (startIndex === -1) return [];
+    const startIndex = startMatch.index;
+    let endIndex = report.length;
 
-    const endIndex = report.indexOf(endMarker, startIndex);
-    const chartSection = report.slice(startIndex, endIndex === -1 ? undefined : endIndex);
+    // Find the next section (Section 3) to know where the table ends
+    const endMatch = report.slice(startIndex).match(/Section 3/i);
+    if (endMatch && typeof endMatch.index !== 'undefined') {
+        endIndex = startIndex + endMatch.index;
+    }
+
+    const chartSection = report.slice(startIndex, endIndex);
 
     const lines = chartSection.split('\n');
     const data: string[][] = [];
@@ -85,7 +90,7 @@ function parseWordChart(report: string): string[][] {
         if (line.includes('|')) {
             // Remove leading/trailing pipes and split
             const row = line.split('|').map(cell => cell.trim()).filter(cell => cell !== '');
-            if (row.length >= 2 && !line.includes('---')) { // Skip separator lines
+            if (row.length >= 2 && !line.match(/^[\s|-]*$/)) { // Skip separator lines like |---|---|
                 data.push(row);
             }
         }
