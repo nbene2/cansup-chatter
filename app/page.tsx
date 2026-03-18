@@ -263,62 +263,76 @@ export default function Home() {
             )}
 
             {report && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-xl p-5 flex items-center gap-4">
-                  <div className="bg-white rounded-full p-1 border border-[#DCFCE7] shadow-sm">
-                    <CheckCircle2 className="w-5 h-5 text-[#16A34A]" />
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 mt-4">
+                
+                {/* Header & Actions */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-2 mb-8">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3 tracking-tight">
+                       <CheckCircle2 className="w-6 h-6 text-[#16A34A]" />
+                       Analysis Complete
+                    </h2>
+                    <p className="text-gray-500 text-sm mt-1 font-medium">Your clinical reports are ready for review.</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-[#166534]">Analysis Complete</p>
-                    <p className="text-sm text-[#15803D]">Medical reports successfully generated</p>
+
+                  <div className="flex items-center gap-3">
+                    {sheetUrl && (
+                      <a
+                        href={sheetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all shadow-sm active:scale-95"
+                      >
+                        <FileSpreadsheet className="w-4 h-4 text-[#16A34A]" />
+                        Word Chart
+                      </a>
+                    )}
+                    {docUrl && (
+                      <a
+                        href={docUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#6A35FF] text-white rounded-xl text-sm font-semibold hover:bg-[#582CD6] transition-all shadow-sm active:scale-95 shadow-[#6A35FF]/20"
+                      >
+                        <FileText className="w-4 h-4" />
+                        Open Report
+                      </a>
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {sheetUrl && (
-                    <a
-                      href={sheetUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 h-12 bg-[#059669] text-white rounded-xl font-medium hover:bg-[#047857] transition-all shadow-sm active:scale-[0.99]"
-                    >
-                      <FileSpreadsheet className="w-4 h-4" />
-                      View Frequency Chart
-                    </a>
-                  )}
-                  {docUrl && (
-                    <a
-                      href={docUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 h-12 bg-[#2563EB] text-white rounded-xl font-medium hover:bg-[#1D4ED8] transition-all shadow-sm active:scale-[0.99]"
-                    >
-                      <FileText className="w-4 h-4" />
-                      View Full Report
-                    </a>
-                  )}
-                  {(sheetUrl || docUrl) && (
-                    <button
-                      onClick={handleCopyUrls}
-                      className="sm:col-span-2 flex items-center justify-center gap-2 h-12 bg-[#FAFAFA] border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-colors active:scale-[0.99]"
-                    >
-                      {copied ? <Check className="w-4 h-4 text-[#16A34A]" /> : <Copy className="w-4 h-4" />}
-                      {copied ? "Links Copied" : "Copy Shared Links"}
-                    </button>
-                  )}
+                {/* Clean Document Container */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
+                  {/* Floating Action */}
+                  <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 bg-white shadow-sm border border-gray-100 rounded-lg">
+                    {(sheetUrl || docUrl) && (
+                      <button
+                        onClick={handleCopyUrls}
+                        className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 text-xs font-semibold transition-colors"
+                      >
+                        {copied ? <Check className="w-3.5 h-3.5 text-[#16A34A]" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copied ? "Copied" : "Copy Links"}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Document Body */}
+                  <div className="p-6 sm:p-10 sm:pt-14 prose prose-gray max-w-none">
+                    <ReportDisplay text={report} />
+                  </div>
                 </div>
 
-                <div className="rounded-xl overflow-hidden border border-gray-200 bg-[#FAFAFA]">
-                  <ReportDisplay text={report} />
+                {/* Reset Action */}
+                <div className="mt-10 flex justify-center">
+                  <button
+                    onClick={handleReset}
+                    className="group flex items-center gap-2 px-6 py-3 text-gray-500 hover:text-gray-900 font-semibold transition-colors text-sm"
+                  >
+                    <RotateCcw className="w-4 h-4 group-hover:-rotate-180 transition-transform duration-500" />
+                    Process Another Recording
+                  </button>
                 </div>
 
-                <button
-                  onClick={handleReset}
-                  className="w-full h-14 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:text-gray-900 transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Process New File
-                </button>
               </div>
             )}
           </div>
