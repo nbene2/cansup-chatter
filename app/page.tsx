@@ -237,15 +237,16 @@ export default function Home() {
                   onClick={handleAudioUpload}
                   disabled={!file}
                   className={`
-                    w-full h-14 rounded-xl text-base font-medium transition-all flex items-center justify-center gap-2
+                    w-full h-14 rounded-xl text-base font-semibold transition-all flex items-center justify-center gap-2
                     ${!file
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                      : 'bg-[#6A35FF] text-white hover:bg-[#582CD6] shadow-sm shadow-[#6A35FF]/20 active:scale-[0.99]'
+                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed border border-gray-200'
+                      : 'bg-[#6A35FF] !text-white hover:bg-[#582CD6] shadow-sm shadow-[#6A35FF]/20 active:scale-[0.99]'
                     }
                   `}
+                  style={{ color: file ? '#ffffff' : undefined }}
                 >
-                  Upload & Transcribe
-                  {file && <ArrowRight className="w-4 h-4" />}
+                  <span className={file ? "text-white" : ""}>Upload & Transcribe</span>
+                  {file && <ArrowRight className="w-5 h-5 text-white" />}
                 </button>
 
                 {error && (
