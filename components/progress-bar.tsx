@@ -77,13 +77,17 @@ export function ProgressBar({ status, conversionProgress = 0 }: ProgressBarProps
                             {/* Circle */}
                             <div
                                 className={`
-                                    w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 bg-white
-                                    ${isComplete ? 'border-2 border-[#6A35FF] text-[#6A35FF]' : ''}
-                                    ${isActive ? 'border-2 border-[#6A35FF] bg-[#6A35FF] text-white shadow-md shadow-[#6A35FF]/20' : ''}
-                                    ${isPending ? 'border-2 border-gray-100 text-gray-300' : ''}
+                                    w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500
+                                    ${isComplete ? 'bg-[#6A35FF] text-white shadow-sm' : ''}
+                                    ${isActive ? 'border-2 border-[#6A35FF] bg-white text-[#6A35FF] shadow-md shadow-[#6A35FF]/20 ring-4 ring-[#6A35FF]/10' : ''}
+                                    ${isPending ? 'border-2 border-gray-200 bg-white text-gray-300' : ''}
                                 `}
                             >
-                                <Icon className={`w-3.5 h-3.5 ${isActive && status !== 'complete' ? 'animate-pulse' : ''}`} />
+                                {isComplete ? (
+                                    <Check className="w-4 h-4" />
+                                ) : (
+                                    <Icon className={`w-3.5 h-3.5 ${isActive && status !== 'complete' ? 'animate-pulse' : ''}`} />
+                                )}
                             </div>
                             
                             <span className={`

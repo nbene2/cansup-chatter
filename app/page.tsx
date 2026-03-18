@@ -182,7 +182,7 @@ export default function Home() {
   const showProgress = status !== null && !report;
 
   return (
-    <main className="min-h-screen relative bg-[#FAFAFA] text-gray-900 font-sans selection:bg-purple-200">
+    <main className="min-h-screen relative bg-white text-gray-900 font-sans selection:bg-purple-200">
       <div className="relative z-10 px-4 py-12 md:py-20">
         <div className="absolute top-6 right-6 z-50">
           <UserButton afterSignOutUrl="/sign-in" />
@@ -194,8 +194,7 @@ export default function Home() {
             <img
               src="/images.jpg"
               alt="Cansup"
-              className="w-16 h-auto mx-auto mb-6 rounded-lg shadow-sm"
-              style={{ mixBlendMode: 'multiply' }}
+              className="w-16 h-auto mx-auto mb-6 rounded-lg"
             />
             <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 mb-3">
               Transcript Analyzer
@@ -216,7 +215,7 @@ export default function Home() {
                     <select
                       value={selectedModel}
                       onChange={(e) => setSelectedModel(e.target.value as OpenAIModel)}
-                      className="w-full appearance-none bg-[#FAFAFA] border border-gray-200 rounded-xl px-4 py-3.5 pr-10 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer transition-colors hover:bg-gray-50"
+                      className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3.5 pr-10 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer transition-colors hover:bg-gray-50 shadow-sm"
                     >
                       {MODEL_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -301,7 +300,7 @@ export default function Home() {
                   {(sheetUrl || docUrl) && (
                     <button
                       onClick={handleCopyUrls}
-                      className="sm:col-span-2 flex items-center justify-center gap-2 h-12 bg-[#FAFAFA] border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors active:scale-[0.99]"
+                      className="sm:col-span-2 flex items-center justify-center gap-2 h-12 bg-[#FAFAFA] border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-colors active:scale-[0.99]"
                     >
                       {copied ? <Check className="w-4 h-4 text-[#16A34A]" /> : <Copy className="w-4 h-4" />}
                       {copied ? "Links Copied" : "Copy Shared Links"}
