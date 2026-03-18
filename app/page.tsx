@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UserButton } from '@clerk/nextjs';
 import { FileUpload } from '@/components/file-upload';
 import { AudioUpload } from '@/components/audio-upload';
@@ -35,8 +35,8 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [pendingTranscription, setPendingTranscription] = useState<string | null>(null);
 
-  const handleAnalyze = async () => {
-    if (!file) return;
+  const handleAnalyze = async (analyzeFile: File | null = file) => {
+    if (!analyzeFile) return;
 
     setError(null);
     setSheetUrl(null);
@@ -47,7 +47,7 @@ export default function Home() {
     setTimeout(() => setStatus('processing'), 800);
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', analyzeFile);
     formData.append('model', selectedModel);
 
     try {
@@ -77,6 +77,51 @@ export default function Home() {
       setStatus(null);
     }
   };
+
+  // Poll transcription job status
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const pollTranscription = async () => {
+      if (!pendingTranscription || status !== 'transcribing') return;
+
+      try {
+        const response = await fetch(`/api/check-transcription?jobName=${pendingTranscription}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to check transcription status');
+        }
+
+        if (data.status === 'COMPLETED') {
+          setPendingTranscription(null);
+          
+          // Create a File from the JSON transcript to pass to analyze
+          const jsonString = JSON.stringify(data.transcript);
+          const transcriptFile = new File([jsonString], "transcript.json", { type: 'application/json' });
+          
+          await handleAnalyze(transcriptFile);
+        } else if (data.status === 'FAILED') {
+          throw new Error(`Transcription failed: ${data.failureReason || 'Unknown error'}`);
+        } else {
+          // Still processing, poll again in 5 seconds
+          timeoutId = setTimeout(pollTranscription, 5000);
+        }
+      } catch (err: any) {
+        setError(err.message);
+        setStatus(null);
+        setPendingTranscription(null);
+      }
+    };
+
+    if (pendingTranscription && status === 'transcribing') {
+      pollTranscription();
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [pendingTranscription, status, selectedModel]);
 
   const handleAudioUpload = async () => {
     if (!file) return;
@@ -118,7 +163,7 @@ export default function Home() {
 
       // File uploaded successfully, now waiting for transcription
       setStatus('transcribing');
-      setPendingTranscription(data.s3Key);
+      setPendingTranscription(data.jobName);
 
     } catch (err: any) {
       setError(err.message);

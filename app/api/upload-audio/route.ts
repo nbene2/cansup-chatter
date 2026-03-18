@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { TranscribeClient, StartTranscriptionJobCommand } from '@aws-sdk/client-transcribe';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const s3Client = new S3Client({
@@ -86,12 +87,39 @@ export async function POST(req: NextRequest) {
 
     await s3Client.send(putCommand);
 
-    // Return success with the S3 key (the transcription job will be triggered by S3 event)
+    // Start transcription job
+    const transcribeClient = new TranscribeClient({
+      region: process.env.AWS_REGION || 'us-east-1',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+      },
+    });
+
+    // Ensure the job name meets AWS restrictions (regex: ^[a-zA-Z0-9-_.!*'()]+$)
+    const safeJobName = sanitizedName.replace(/[^a-zA-Z0-9-_.!*'()]/g, '_');
+    const jobName = `job_${timestamp}_${safeJobName}`.substring(0, 200);
+
+    const transcribeCommand = new StartTranscriptionJobCommand({
+      TranscriptionJobName: jobName,
+      LanguageCode: 'en-US',
+      Media: {
+        MediaFileUri: `s3://${bucketName}/${s3Key}`,
+      },
+      Settings: {
+        ShowSpeakerLabels: true,
+        MaxSpeakerLabels: 4,
+      },
+    });
+
+    await transcribeClient.send(transcribeCommand);
+
     return NextResponse.json({
       success: true,
-      message: 'File uploaded successfully. Transcription will start automatically.',
+      message: 'File uploaded and transcription started.',
       s3Key,
       fileName: file.name,
+      jobName: jobName,
     });
 
   } catch (error: any) {
