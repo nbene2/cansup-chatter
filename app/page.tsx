@@ -5,7 +5,7 @@ import { UserButton } from '@clerk/nextjs';
 import { AudioUpload } from '@/components/audio-upload';
 import { ProgressBar } from '@/components/progress-bar';
 import { ReportDisplay } from '@/components/report-display';
-import { CheckCircle2, ArrowRight, FileSpreadsheet, FileText, Copy, Check, ChevronDown, RefreshCcw } from 'lucide-react';
+import { CheckCircle2, ArrowRight, FileSpreadsheet, FileText, Copy, Check, ChevronDown, RotateCcw } from 'lucide-react';
 import { convertToM4A, needsConversion } from '@/lib/audio-converter';
 
 type OpenAIModel = 'gpt-5' | 'o1' | 'o1-mini' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4-turbo';
@@ -31,16 +31,8 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [pendingTranscription, setPendingTranscription] = useState<string | null>(null);
 
-  const handleAnalyze = async (analyzeFile: File | null = file) => {
-    if (!analyzeFile) return;
-
-    setError(null);
-    setSheetUrl(null);
-    setDocUrl(null);
-    setCopied(false);
-    setStatus('uploading');
-
-    setTimeout(() => setStatus('processing'), 800);
+  const handleAnalyze = async (analyzeFile: File) => {
+    setStatus('processing');
 
     const formData = new FormData();
     formData.append('file', analyzeFile);
@@ -53,7 +45,7 @@ export default function Home() {
       });
 
       const interval = setInterval(() => {
-        setStatus((prev) => prev === 'uploading' ? 'processing' : prev === 'processing' ? 'generating' : prev);
+        setStatus((prev) => prev === 'processing' ? 'generating' : prev);
       }, 4000);
 
       const data = await response.json();
@@ -92,7 +84,6 @@ export default function Home() {
         if (data.status === 'COMPLETED') {
           setPendingTranscription(null);
           
-          // Create a File from the JSON transcript to pass to analyze
           const jsonString = JSON.stringify(data.transcript);
           const transcriptFile = new File([jsonString], "transcript.json", { type: 'application/json' });
           
@@ -140,8 +131,6 @@ export default function Home() {
           setConversionProgress(progress.progress);
         });
       }
-
-      setStatus('uploading');
 
       const formData = new FormData();
       formData.append('file', fileToUpload);
@@ -193,49 +182,41 @@ export default function Home() {
   const showProgress = status !== null && !report;
 
   return (
-    <main className="min-h-screen relative bg-gradient-to-br from-[#f8f9ff] via-[#ffffff] to-[#fff5f0] overflow-hidden">
-      {/* Decorative background gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-br from-indigo-200/40 to-purple-200/40 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-tl from-orange-200/40 to-rose-200/40 blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 px-4 py-8 md:py-16">
-        {/* User menu */}
-        <div className="absolute top-4 right-4 z-50">
+    <main className="min-h-screen relative bg-[#FAFAFA] text-gray-900 font-sans selection:bg-purple-200">
+      <div className="relative z-10 px-4 py-12 md:py-20">
+        <div className="absolute top-6 right-6 z-50">
           <UserButton afterSignOutUrl="/sign-in" />
         </div>
 
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <div className="inline-block p-1 rounded-2xl bg-gradient-to-b from-white/80 to-white/20 shadow-xl shadow-orange-500/10 mb-6 backdrop-blur-xl border border-white/50">
-              <img
-                src="/images.jpg"
-                alt="Cansup"
-                className="w-20 h-20 rounded-xl object-cover"
-              />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4 font-sans">
-              Clinical <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-rose-500">Audio Intelligence</span>
+            <img
+              src="/images.jpg"
+              alt="Cansup"
+              className="w-16 h-auto mx-auto mb-6 rounded-lg shadow-sm"
+              style={{ mixBlendMode: 'multiply' }}
+            />
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 mb-3">
+              Transcript Analyzer
             </h1>
-            <p className="text-gray-500 text-lg max-w-lg mx-auto">
-              Upload clinical recordings to instantly generate structured medical reports and word frequency insights.
+            <p className="text-gray-500 text-lg">
+              Upload a secure clinical recording to generate reports
             </p>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-xl border border-white max-w-xl mx-auto rounded-3xl p-6 sm:p-8 shadow-2xl shadow-indigo-500/5 transition-all duration-500">
-            {/* Upload Section */}
+          <div className="bg-white border border-gray-200/80 rounded-2xl p-6 sm:p-10 shadow-sm">
             {showInput && (
-              <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                {/* Model Selector */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 uppercase tracking-wide">
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
                     Analysis Engine
                   </label>
                   <div className="relative group">
                     <select
                       value={selectedModel}
                       onChange={(e) => setSelectedModel(e.target.value as OpenAIModel)}
-                      className="w-full appearance-none bg-white/50 border border-gray-200 rounded-2xl px-5 py-4 pr-12 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer transition-all hover:bg-white"
+                      className="w-full appearance-none bg-[#FAFAFA] border border-gray-200 rounded-xl px-4 py-3.5 pr-10 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer transition-colors hover:bg-gray-50"
                     >
                       {MODEL_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -243,7 +224,7 @@ export default function Home() {
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none group-hover:text-orange-500 transition-colors" />
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
 
@@ -257,57 +238,53 @@ export default function Home() {
                   onClick={handleAudioUpload}
                   disabled={!file}
                   className={`
-                    w-full h-16 rounded-2xl text-lg font-bold transition-all duration-300 flex items-center justify-center gap-3
+                    w-full h-14 rounded-xl text-base font-medium transition-all flex items-center justify-center gap-2
                     ${!file
-                      ? 'bg-gray-100/50 text-gray-400 cursor-not-allowed border border-gray-200'
-                      : 'bg-gradient-to-r from-orange-500 to-rose-500 text-white hover:from-orange-600 hover:to-rose-600 active:scale-[0.98] shadow-xl shadow-orange-500/25 border border-orange-400/20 hover:shadow-2xl hover:shadow-orange-500/40'
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                      : 'bg-[#6A35FF] text-white hover:bg-[#582CD6] shadow-sm shadow-[#6A35FF]/20 active:scale-[0.99]'
                     }
                   `}
                 >
                   Upload & Transcribe
-                  {file && <ArrowRight className="w-5 h-5" />}
+                  {file && <ArrowRight className="w-4 h-4" />}
                 </button>
 
                 {error && (
-                  <div className="p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl text-red-600 text-center text-sm font-medium animate-in fade-in slide-in-from-top-2">
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center text-sm font-medium animate-in fade-in slide-in-from-top-1">
                     {error}
                   </div>
                 )}
               </div>
             )}
 
-            {/* Progress */}
             {showProgress && (
-              <div className="animate-in fade-in zoom-in-95 duration-500">
+              <div className="animate-in fade-in zoom-in-95 duration-300">
                 <ProgressBar status={status} conversionProgress={conversionProgress} />
               </div>
             )}
 
-            {/* Results */}
             {report && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                {/* Success Banner */}
-                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-5 flex items-center gap-4">
-                  <div className="bg-emerald-100 rounded-full p-2">
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-xl p-5 flex items-center gap-4">
+                  <div className="bg-white rounded-full p-1 border border-[#DCFCE7] shadow-sm">
+                    <CheckCircle2 className="w-5 h-5 text-[#16A34A]" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-bold text-emerald-900">Analysis Complete</p>
-                    <p className="text-sm text-emerald-700 font-medium">Your medical reports have been securely generated.</p>
+                    <p className="font-medium text-[#166534]">Analysis Complete</p>
+                    <p className="text-sm text-[#15803D]">Medical reports successfully generated</p>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {sheetUrl && (
                     <a
                       href={sheetUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-3 h-14 bg-emerald-600 text-white rounded-2xl font-semibold hover:bg-emerald-700 transition-all hover:shadow-lg hover:shadow-emerald-600/20 active:scale-95"
+                      className="flex items-center justify-center gap-2 h-12 bg-[#059669] text-white rounded-xl font-medium hover:bg-[#047857] transition-all shadow-sm active:scale-[0.99]"
                     >
-                      <FileSpreadsheet className="w-5 h-5" />
-                      Frequency Chart
+                      <FileSpreadsheet className="w-4 h-4" />
+                      View Frequency Chart
                     </a>
                   )}
                   {docUrl && (
@@ -315,36 +292,34 @@ export default function Home() {
                       href={docUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-3 h-14 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-blue-600/20 active:scale-95"
+                      className="flex items-center justify-center gap-2 h-12 bg-[#2563EB] text-white rounded-xl font-medium hover:bg-[#1D4ED8] transition-all shadow-sm active:scale-[0.99]"
                     >
-                      <FileText className="w-5 h-5" />
-                      Full Report Doc
+                      <FileText className="w-4 h-4" />
+                      View Full Report
                     </a>
                   )}
                   {(sheetUrl || docUrl) && (
                     <button
                       onClick={handleCopyUrls}
-                      className="sm:col-span-2 flex items-center justify-center gap-2 h-12 bg-white/50 border-2 border-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors active:scale-95"
+                      className="sm:col-span-2 flex items-center justify-center gap-2 h-12 bg-[#FAFAFA] border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors active:scale-[0.99]"
                     >
-                      {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
-                      {copied ? "Links Copied!" : "Copy Links"}
+                      {copied ? <Check className="w-4 h-4 text-[#16A34A]" /> : <Copy className="w-4 h-4" />}
+                      {copied ? "Links Copied" : "Copy Shared Links"}
                     </button>
                   )}
                 </div>
 
-                <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white/80 backdrop-blur-md">
+                <div className="rounded-xl overflow-hidden border border-gray-200 bg-[#FAFAFA]">
                   <ReportDisplay text={report} />
                 </div>
 
-                <div className="pt-6 border-t border-gray-200">
-                  <button
-                    onClick={handleReset}
-                    className="group w-full h-16 bg-white border-2 border-indigo-100 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-sm shadow-indigo-500/5 hover:shadow-md hover:shadow-indigo-500/10"
-                  >
-                    <RefreshCcw className="w-5 h-5 group-hover:-rotate-180 transition-transform duration-500" />
-                    Process New Recording
-                  </button>
-                </div>
+                <button
+                  onClick={handleReset}
+                  className="w-full h-14 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:text-gray-900 transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Process New File
+                </button>
               </div>
             )}
           </div>
