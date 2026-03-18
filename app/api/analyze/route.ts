@@ -28,7 +28,7 @@ Describe the tone of the doctor or doctors in the meeting.  Were they bored, rus
 Provide one piece of feedback you would give to the doctor about their communications skills with patients and their families.
 
 Section 2:  Word chart
-Create a table for the conversations. The first column is each unique word that was said in the conversation.
+Create a markdown table for the conversations using '|' as column separators. The first column is each unique word that was said in the conversation.
 Do not include worthless words like ‘uh, um, yeah, and’, 'ok', etc.
 Do not include worthless words like ‘uh, um, yeah, and’, 'ok', etc.
 Do not include the names of the people from section 1 but do include other names that were mentioned.
@@ -68,7 +68,7 @@ A simple summary of Section 5 from the INTERNAL report, in bullet form.
 `;
 
 function parseWordChart(report: string): string[][] {
-    const startMatch = report.match(/Section 2:\s*\*?Word/i);
+    const startMatch = report.match(/Section 2[^\n]*Word/i);
     if (!startMatch || typeof startMatch.index === 'undefined') return [];
 
     const startIndex = startMatch.index;
