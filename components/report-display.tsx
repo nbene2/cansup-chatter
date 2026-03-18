@@ -24,18 +24,18 @@ export function ReportDisplay({ text }: ReportDisplayProps) {
     const renderContent = (content: string) => {
         return content.split('\n').map((line, idx) => {
             line = line.trim();
-            if (!line) return <div key={idx} className="h-3" />;
+            if (!line) return <div key={idx} style={{ height: '12px' }} />;
 
             if (line.startsWith('Section')) {
                 return (
-                    <h3 key={idx} className="text-base sm:text-lg font-semibold text-gray-900 mt-7 mb-3 pb-2.5 border-b border-gray-200">
+                    <h3 key={idx} style={{ fontSize: '16px', fontWeight: 600, color: '#111827', marginTop: '28px', marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid #e5e7eb' }}>
                         {line}
                     </h3>
                 );
             }
             if (line.startsWith('- ')) {
                 return (
-                    <li key={idx} className="ml-5 list-disc text-gray-700 mb-1.5 text-sm sm:text-base leading-relaxed">
+                    <li key={idx} style={{ marginLeft: '20px', listStyleType: 'disc', color: '#374151', marginBottom: '6px', fontSize: '14px', lineHeight: 1.7 }}>
                         {line.replace('- ', '')}
                     </li>
                 );
@@ -45,9 +45,9 @@ export function ReportDisplay({ text }: ReportDisplayProps) {
                 const cells = line.split('|').filter(c => c.trim() !== '');
                 if (cells.length > 0 && !line.includes('---')) {
                     return (
-                        <div key={idx} className="grid grid-cols-3 gap-3 sm:gap-4 py-2.5 border-b border-gray-100 text-xs sm:text-sm">
+                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', padding: '10px 0', borderBottom: '1px solid #f3f4f6', fontSize: '13px' }}>
                             {cells.map((cell, i) => (
-                                <span key={i} className={`${i === 1 ? 'font-medium text-purple-600' : 'text-gray-600'} break-words min-w-0`}>
+                                <span key={i} style={{ color: i === 1 ? '#9333ea' : '#4b5563', fontWeight: i === 1 ? 500 : 400, overflowWrap: 'break-word', minWidth: 0 }}>
                                     {cell.trim()}
                                 </span>
                             ))}
@@ -57,33 +57,33 @@ export function ReportDisplay({ text }: ReportDisplayProps) {
                 return null;
             }
 
-            return <p key={idx} className="text-gray-700 mb-2.5 text-sm sm:text-base leading-relaxed">{line}</p>;
+            return <p key={idx} style={{ color: '#374151', marginBottom: '10px', fontSize: '14px', lineHeight: 1.7 }}>{line}</p>;
         });
     };
 
     return (
-        <div className="space-y-6">
+        <div>
             {/* Internal Report */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                <div className="bg-red-50 px-5 py-4 flex items-center border-b border-red-100">
-                    <Activity className="w-[18px] h-[18px] sm:w-5 sm:h-5 text-red-600 shrink-0" />
-                    <span className="font-semibold text-red-900 text-sm sm:text-base ml-3">Internal Report</span>
-                    <span className="text-[10px] sm:text-xs bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ml-auto">Clinician Only</span>
+            <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ backgroundColor: '#fef2f2', padding: '16px 20px', display: 'flex', alignItems: 'center', borderBottom: '1px solid #fecdd3' }}>
+                    <Activity style={{ width: '18px', height: '18px', color: '#dc2626', flexShrink: 0 }} />
+                    <span style={{ fontWeight: 600, color: '#7f1d1d', fontSize: '15px', marginLeft: '12px' }}>Internal Report</span>
+                    <span style={{ fontSize: '11px', backgroundColor: '#fee2e2', color: '#b91c1c', padding: '2px 10px', borderRadius: '9999px', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 'auto' }}>Clinician Only</span>
                 </div>
-                <div className="p-5 sm:p-7">
+                <div style={{ padding: '24px' }}>
                     {renderContent(internalText)}
                 </div>
             </div>
 
             {/* Family Report */}
             {familyText && (
-                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                    <div className="bg-blue-50 px-5 py-4 flex items-center border-b border-blue-100">
-                        <User className="w-[18px] h-[18px] sm:w-5 sm:h-5 text-blue-600 shrink-0" />
-                        <span className="font-semibold text-blue-900 text-sm sm:text-base ml-3">Family Report</span>
-                        <span className="text-[10px] sm:text-xs bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ml-auto">Patient Friendly</span>
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', marginTop: '24px' }}>
+                    <div style={{ backgroundColor: '#eff6ff', padding: '16px 20px', display: 'flex', alignItems: 'center', borderBottom: '1px solid #bfdbfe' }}>
+                        <User style={{ width: '18px', height: '18px', color: '#2563eb', flexShrink: 0 }} />
+                        <span style={{ fontWeight: 600, color: '#1e3a5f', fontSize: '15px', marginLeft: '12px' }}>Family Report</span>
+                        <span style={{ fontSize: '11px', backgroundColor: '#dbeafe', color: '#1d4ed8', padding: '2px 10px', borderRadius: '9999px', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 'auto' }}>Patient Friendly</span>
                     </div>
-                    <div className="p-5 sm:p-7">
+                    <div style={{ padding: '24px' }}>
                         {renderContent(familyText)}
                     </div>
                 </div>

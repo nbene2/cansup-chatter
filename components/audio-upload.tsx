@@ -85,42 +85,47 @@ export function AudioUpload({ onFileSelect, selectedFile, onClear }: AudioUpload
   if (selectedFile) {
     const FileIcon = getFileIcon(selectedFile.name);
     return (
-      <div className="space-y-4">
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center border border-indigo-100/50 shrink-0">
-              <FileIcon className="w-5 h-5 text-indigo-600" />
-            </div>
-            <div className="ml-4 min-w-0 flex-1">
-              <p className="font-semibold text-gray-900 text-sm truncate">{selectedFile.name}</p>
-              <p className="text-xs text-gray-500 font-medium mt-1">
-                {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-              </p>
-            </div>
-            <button
-              onClick={handleClear}
-              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors border border-transparent hover:border-gray-200 shrink-0 ml-4"
-            >
-              <X className="w-4 h-4" />
-            </button>
+      <div>
+        <div
+          style={{ padding: '20px', display: 'flex', alignItems: 'center', borderRadius: '16px', border: '1px solid #e5e7eb', backgroundColor: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+        >
+          <div
+            style={{ width: '48px', height: '48px', minWidth: '48px', backgroundColor: '#eef2ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(199,210,254,0.5)' }}
+          >
+            <FileIcon style={{ width: '20px', height: '20px', color: '#4f46e5' }} />
           </div>
-        </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
-          <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-white rounded-full border border-gray-200 shrink-0">
-              <Mic className="w-3.5 h-3.5 text-indigo-600" />
-            </div>
-            <p className="font-medium">
-              File will be securely transmitted and transcribed using AWS architecture.
+          <div style={{ marginLeft: '20px', minWidth: 0, flex: 1 }}>
+            <p style={{ fontWeight: 600, color: '#111827', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedFile.name}</p>
+            <p style={{ fontSize: '12px', color: '#6b7280', fontWeight: 500, marginTop: '4px' }}>
+              {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
             </p>
           </div>
+          <button
+            onClick={handleClear}
+            style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px', color: '#9ca3af', border: 'none', background: 'none', cursor: 'pointer', marginLeft: '16px', flexShrink: 0 }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; e.currentTarget.style.color = '#111827'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#9ca3af'; }}
+          >
+            <X style={{ width: '16px', height: '16px' }} />
+          </button>
+        </div>
+
+        <div
+          style={{ marginTop: '16px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center' }}
+        >
+          <div style={{ padding: '6px', backgroundColor: '#fff', borderRadius: '50%', border: '1px solid #e5e7eb', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Mic style={{ width: '14px', height: '14px', color: '#4f46e5' }} />
+          </div>
+          <p style={{ marginLeft: '14px', fontSize: '14px', color: '#4b5563', fontWeight: 500 }}>
+            File will be securely transmitted and transcribed using AWS architecture.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div>
       <div
         className={`
           relative rounded-2xl border-2 border-dashed transition-all cursor-pointer group
@@ -163,7 +168,7 @@ export function AudioUpload({ onFileSelect, selectedFile, onClear }: AudioUpload
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium flex items-center gap-3">
+        <div style={{ marginTop: '12px', padding: '14px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', color: '#dc2626', fontSize: '14px', fontWeight: 500 }}>
           {error}
         </div>
       )}

@@ -276,15 +276,15 @@ export default function Home() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4 px-2 mb-8">
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px', padding: '0 8px', marginBottom: '32px' }}>
                   {sheetUrl && (
                     <a
                       href={sheetUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 px-5 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all shadow-sm active:scale-[0.98]"
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 20px', backgroundColor: '#fff', border: '1px solid #e5e7eb', color: '#374151', borderRadius: '12px', fontSize: '14px', fontWeight: 600, textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
                     >
-                      <FileSpreadsheet className="w-4 h-4 text-[#16A34A] shrink-0" />
+                      <FileSpreadsheet style={{ width: '16px', height: '16px', color: '#16A34A', flexShrink: 0 }} />
                       Word Chart
                     </a>
                   )}
@@ -293,18 +293,18 @@ export default function Home() {
                       href={docUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 px-6 py-3 bg-[#6A35FF] text-white rounded-xl text-sm font-semibold hover:bg-[#582CD6] transition-all shadow-sm active:scale-[0.98] shadow-[#6A35FF]/20"
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 24px', backgroundColor: '#6A35FF', color: '#fff', borderRadius: '12px', fontSize: '14px', fontWeight: 600, textDecoration: 'none', boxShadow: '0 1px 3px rgba(106,53,255,0.2)' }}
                     >
-                      <FileText className="w-4 h-4 shrink-0" />
+                      <FileText style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                       Open Report
                     </a>
                   )}
                   {(sheetUrl || docUrl) && (
                     <button
                       onClick={handleCopyUrls}
-                      className="flex items-center gap-2 px-4 py-3 text-gray-500 hover:text-gray-900 text-sm font-semibold transition-colors rounded-xl hover:bg-gray-50"
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', color: '#6b7280', fontSize: '14px', fontWeight: 600, borderRadius: '12px', border: 'none', background: 'none', cursor: 'pointer' }}
                     >
-                      {copied ? <Check className="w-3.5 h-3.5 text-[#16A34A]" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? <Check style={{ width: '14px', height: '14px', color: '#16A34A' }} /> : <Copy style={{ width: '14px', height: '14px' }} />}
                       {copied ? "Copied!" : "Copy Links"}
                     </button>
                   )}
