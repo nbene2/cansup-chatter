@@ -184,7 +184,16 @@ export default function Home() {
   return (
     <main className="min-h-screen relative bg-white text-gray-900 font-sans selection:bg-purple-200">
       <div className="relative z-10 px-4 py-12 md:py-20">
-        <div className="absolute top-6 right-6 z-50">
+        <div style={{ position: 'absolute', top: '24px', right: '24px', zIndex: 50, display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {report && (
+            <button
+              onClick={handleReset}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', backgroundColor: '#6A35FF', color: '#fff', borderRadius: '10px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 1px 3px rgba(106,53,255,0.3)' }}
+            >
+              <RotateCcw style={{ width: '14px', height: '14px' }} />
+              New Recording
+            </button>
+          )}
           <UserButton afterSignOutUrl="/sign-in" />
         </div>
 
@@ -277,17 +286,6 @@ export default function Home() {
 
                 {/* Action Buttons */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px', padding: '0 8px', marginBottom: '32px' }}>
-                  {sheetUrl && (
-                    <a
-                      href={sheetUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 20px', backgroundColor: '#fff', border: '1px solid #e5e7eb', color: '#374151', borderRadius: '12px', fontSize: '14px', fontWeight: 600, textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-                    >
-                      <FileSpreadsheet style={{ width: '16px', height: '16px', color: '#16A34A', flexShrink: 0 }} />
-                      Word Chart
-                    </a>
-                  )}
                   {docUrl && (
                     <a
                       href={docUrl}
@@ -297,6 +295,17 @@ export default function Home() {
                     >
                       <FileText style={{ width: '16px', height: '16px', flexShrink: 0 }} />
                       Open Report
+                    </a>
+                  )}
+                  {sheetUrl && (
+                    <a
+                      href={sheetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 20px', backgroundColor: '#fff', border: '1px solid #e5e7eb', color: '#374151', borderRadius: '12px', fontSize: '14px', fontWeight: 600, textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+                    >
+                      <FileSpreadsheet style={{ width: '16px', height: '16px', color: '#16A34A', flexShrink: 0 }} />
+                      Word Chart
                     </a>
                   )}
                   {(sheetUrl || docUrl) && (
