@@ -266,59 +266,53 @@ export default function Home() {
             {report && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 mt-4">
                 
-                {/* Header & Actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-2 mb-8">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3 tracking-tight">
-                       <CheckCircle2 className="w-6 h-6 text-[#16A34A]" />
-                       Analysis Complete
-                    </h2>
-                    <p className="text-gray-500 text-sm mt-1 font-medium">Your clinical reports are ready for review.</p>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {sheetUrl && (
-                      <a
-                        href={sheetUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all shadow-sm active:scale-95"
-                      >
-                        <FileSpreadsheet className="w-4 h-4 text-[#16A34A]" />
-                        Word Chart
-                      </a>
-                    )}
-                    {docUrl && (
-                      <a
-                        href={docUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#6A35FF] text-white rounded-xl text-sm font-semibold hover:bg-[#582CD6] transition-all shadow-sm active:scale-95 shadow-[#6A35FF]/20"
-                      >
-                        <FileText className="w-4 h-4" />
-                        Open Report
-                      </a>
-                    )}
-                  </div>
+                {/* Header */}
+                <div className="px-2 mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2.5 tracking-tight">
+                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#16A34A] shrink-0" />
+                    Analysis Complete
+                  </h2>
+                  <p className="text-gray-500 text-sm mt-1.5 font-medium ml-[30px] sm:ml-[34px]">Your clinical reports are ready for review.</p>
                 </div>
 
-                {/* Clean Document Container */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                  {/* Floating Action */}
-                  <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 bg-white shadow-sm border border-gray-100 rounded-lg">
-                    {(sheetUrl || docUrl) && (
-                      <button
-                        onClick={handleCopyUrls}
-                        className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 text-xs font-semibold transition-colors"
-                      >
-                        {copied ? <Check className="w-3.5 h-3.5 text-[#16A34A]" /> : <Copy className="w-3.5 h-3.5" />}
-                        {copied ? "Copied" : "Copy Links"}
-                      </button>
-                    )}
-                  </div>
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2.5 px-2 mb-6">
+                  {sheetUrl && (
+                    <a
+                      href={sheetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all shadow-sm active:scale-[0.98]"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-[#16A34A] shrink-0" />
+                      Word Chart
+                    </a>
+                  )}
+                  {docUrl && (
+                    <a
+                      href={docUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-5 py-2.5 bg-[#6A35FF] text-white rounded-xl text-sm font-semibold hover:bg-[#582CD6] transition-all shadow-sm active:scale-[0.98] shadow-[#6A35FF]/20"
+                    >
+                      <FileText className="w-4 h-4 shrink-0" />
+                      Open Report
+                    </a>
+                  )}
+                  {(sheetUrl || docUrl) && (
+                    <button
+                      onClick={handleCopyUrls}
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 text-gray-500 hover:text-gray-900 text-sm font-semibold transition-colors rounded-xl hover:bg-gray-50"
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5 text-[#16A34A]" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? "Copied!" : "Copy Links"}
+                    </button>
+                  )}
+                </div>
 
-                  {/* Document Body */}
-                  <div className="p-6 sm:p-10 sm:pt-14 prose prose-gray max-w-none">
+                {/* Document Container */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="p-4 sm:p-8 prose prose-gray max-w-none">
                     <ReportDisplay text={report} />
                   </div>
                 </div>
