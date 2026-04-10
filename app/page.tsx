@@ -10,6 +10,21 @@ import { convertToM4A, needsConversion } from '@/lib/audio-converter';
 
 type OpenAIModel = 'gpt-5' | 'o1' | 'o1-mini' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4-turbo';
 
+/** Parse a fetch Response as JSON, with a clear error when the body isn't JSON
+ *  (e.g. Vercel HTML error pages, 413 payload-too-large, 502 gateway errors). */
+async function safeJson(response: Response): Promise<any> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      response.ok
+        ? 'Received an unexpected non-JSON response from the server.'
+        : `Server error (${response.status}). Please try again or contact support.`
+    );
+  }
+}
+
 const MODEL_OPTIONS: { value: OpenAIModel; label: string; description: string }[] = [
   { value: 'o1', label: 'o1', description: 'Best reasoning (default)' },
   { value: 'gpt-5', label: 'GPT-5', description: 'Latest model' },
@@ -48,7 +63,7 @@ export default function Home() {
         setStatus((prev) => prev === 'processing' ? 'generating' : prev);
       }, 4000);
 
-      const data = await response.json();
+      const data = await safeJson(response);
       clearInterval(interval);
 
       if (!response.ok) {
@@ -75,7 +90,7 @@ export default function Home() {
 
       try {
         const response = await fetch(`/api/check-transcription?jobName=${pendingTranscription}`);
-        const data = await response.json();
+        const data = await safeJson(response);
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to check transcription status');
@@ -132,16 +147,34 @@ export default function Home() {
         });
       }
 
-      const formData = new FormData();
-      formData.append('file', fileToUpload);
+      setStatus('uploading');
 
+      // Step 1: Get a presigned S3 URL (avoids Vercel body-size limit)
+      const presignRes = await fetch(
+        `/api/upload-audio?fileName=${encodeURIComponent(fileToUpload.name)}&contentType=${encodeURIComponent(fileToUpload.type || 'audio/mp4')}`
+      );
+      const presignData = await safeJson(presignRes);
+      if (!presignRes.ok) {
+        throw new Error(presignData.error || 'Failed to prepare upload');
+      }
+
+      // Step 2: Upload directly to S3 (browser → S3, no serverless limit)
+      const s3Res = await fetch(presignData.presignedUrl, {
+        method: 'PUT',
+        body: fileToUpload,
+        headers: { 'Content-Type': fileToUpload.type || 'audio/mp4' },
+      });
+      if (!s3Res.ok) {
+        throw new Error('Failed to upload file to storage. Please try again.');
+      }
+
+      // Step 3: Tell the server to start transcription (tiny JSON body)
       const response = await fetch('/api/upload-audio', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ s3Key: presignData.s3Key, fileName: fileToUpload.name }),
       });
-
-      const data = await response.json();
-
+      const data = await safeJson(response);
       if (!response.ok) {
         throw new Error(data.error || 'Upload Failed');
       }
